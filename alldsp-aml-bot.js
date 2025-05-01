@@ -103,129 +103,122 @@ exchangeService.getDirectionCurrencies()
         console.error('Error fetching currencies:', error);
     });
 
-// --- Clear and Set Bot Commands (Optional but good practice) ---
-const botCommands = [
-    { command: 'start', description: 'Показать приветственное сообщение и помощь' },
-    { command: 'usdt_rub', description: '[сумма] - Курс и конвертация USDT → RUB' },
-    { command: 'rub_usdt', description: '[сумма] - Курс и конвертация RUB → USDT' },
-    { command: 'aml', description: '[адрес] - Проверить кошелек (TRON/BTC) по AML' },
-    { command: 'amls', description: 'Показать последние AML отчеты' },
-];
+// --- Clear Bot Commands ---
+// Удалите или закомментируйте блок установки команд:
+// const botCommands = [
+//     { command: 'start', description: 'Показать приветственное сообщение и помощь' },
+//     { command: 'usdt_rub', description: '[сумма] - Курс и конвертация USDT → RUB' },
+//     { command: 'rub_usdt', description: '[сумма] - Курс и конвертация RUB → USDT' },
+//     { command: 'aml', description: '[адрес] - Проверить кошелек (TRON/BTC) по AML' },
+//     { command: 'amls', description: 'Показать последние AML отчеты' },
+// ];
+//
+// bot.setMyCommands(botCommands)
+//     .then(() => console.log('Bot commands updated successfully.'))
+//     .catch(err => console.error('Error setting bot commands:', err));
 
-bot.setMyCommands(botCommands)
-    .then(() => console.log('Bot commands updated successfully.'))
-    .catch(err => console.error('Error setting bot commands:', err));
+// Сбросьте все команды, передав пустой массив:
+bot.setMyCommands([])
+    .then(() => console.log('Bot commands reset successfully.'))
+    .catch(err => console.error('Error resetting bot commands:', err));
 
 // --- Command Handlers ---
 
-// Handle /start command
-bot.onText(/\/start/, (msg) => {
+// Handle @start command
+bot.onText(/@start/i, (msg) => {
     const chatId = msg.chat.id;
     const authorizedUsername = checkAuthorization(msg);
     if (!authorizedUsername) return; // Check authorization
 
-    // Escaped characters for MarkdownV2: '.', '-', '(', ')', '!', '+', '%'
-    // Updated help text based on commission logic clarification
     const helpText = `*🤖 Добро пожаловать в Crypto Exchange Bot\\!*
 
 *Доступные команды:*
 
 *Обмен USDT на RUB:*
-• \`/usdt_rub\` \\- Текущий курс USDT → RUB
-• \`/usdt_rub \\-0\\.5%\` \\- Курс USDT → RUB со скидкой 0\\.5% 
-• \`/usdt_rub \\+1%\` \\- Курс USDT → RUB с наценкой 1% 
-• \`/usdt_rub 100\` \\- Рассчитать 100 USDT в RUB по базовому курсу
-• \`/usdt_rub 100 \\-0\\.5%\` \\- Рассчитать 100 USDT в RUB со скидкой 0\\.5%
-• \`/usdt_rub 100 \\+1%\` \\- Рассчитать 100 USDT в RUB с наценкой 1%
+• \`@usdt_rub\` \\- Текущий курс USDT → RUB
+• \`@usdt_rub \\-0\\.5%\` \\- Курс USDT → RUB со скидкой 0\\.5% 
+• \`@usdt_rub \\+1%\` \\- Курс USDT → RUB с наценкой 1% 
+• \`@usdt_rub 100\` \\- Рассчитать 100 USDT в RUB по базовому курсу
+• \`@usdt_rub 100 \\-0\\.5%\` \\- Рассчитать 100 USDT в RUB со скидкой 0\\.5%
+• \`@usdt_rub 100 \\+1%\` \\- Рассчитать 100 USDT в RUB с наценкой 1%
 
 *Обмен RUB на USDT:*
-• \`/rub_usdt\` \\- Текущий курс RUB → USDT
-• \`/rub_usdt \\+1%\` \\- Курс RUB → USDT с наценкой 1% \\(клиенту потребуется больше RUB за USDT\\)
-• \`/rub_usdt \\-1%\` \\- Курс RUB → USDT со скидкой 1% \\(клиенту потребуется меньше RUB за USDT\\)
-• \`/rub_usdt 10000\` \\- Рассчитать 10000 RUB в USDT по базовому курсу
-• \`/rub_usdt 10000 \\+1%\` \\- Рассчитать 10000 RUB в USDT с наценкой 1%
-• \`/rub_usdt 10000 \\-1%\` \\- Рассчитать 10000 RUB в USDT со скидкой 1%
+• \`@rub_usdt\` \\- Текущий курс RUB → USDT
+• \`@rub_usdt \\+1%\` \\- Курс RUB → USDT с наценкой 1% \\(клиенту потребуется больше RUB за USDT\\)
+• \`@rub_usdt \\-1%\` \\- Курс RUB → USDT со скидкой 1% \\(клиенту потребуется меньше RUB за USDT\\)
+• \`@rub_usdt 10000\` \\- Рассчитать 10000 RUB в USDT по базовому курсу
+• \`@rub_usdt 10000 \\+1%\` \\- Рассчитать 10000 RUB в USDT с наценкой 1%
+• \`@rub_usdt 10000 \\-1%\` \\- Рассчитать 10000 RUB в USDT со скидкой 1%
 
 *AML Проверка:*
-• \`/aml T\\.\\.\\. \` \\- Проверить TRON адрес
-• \`/aml 1\\.\\.\\.\` или \`/aml 3\\.\\.\\.\` или \`/aml bc1\\.\\.\\.\` \\- Проверить Bitcoin адрес
-• \`/amls\` \\- Показать историю проверок
+• \`@aml T\\.\\.\\. \` \\- Проверить TRON адрес
+• \`@aml 1\\.\\.\\...\` или \`@aml 3\\.\\.\\...\` или \`@aml bc1\\.\\.\\...\` \\- Проверить Bitcoin адрес
+• \`@amls\` \\- Показать историю проверок
 
 _Курсы обмена обновляются примерно раз в ${config.RATES_CACHE_TTL_SECONDS} секунд\\._
 _Результаты AML проверки кэшируются на стороне сервиса\\._`;
 
-    // Use MarkdownV2 for better formatting control
     bot.sendMessage(chatId, helpText, { parse_mode: 'MarkdownV2' });
 });
 
-// Handle /USDT_RUB command
-// Updated regex to handle three cases and allow comma or period in commission
-// 1. /USDT_RUB (no params)
-// 2. /USDT_RUB +1% or +1,5% (commission only)
-// 3. /USDT_RUB 100 +1% or 100 +1,5% (amount and commission)
-bot.onText(/\/USDT_RUB(?:\s+(\d+\.?\d*))?(?:\s*([+-]?\d*[.,]?\d+%))?|\/USDT_RUB\s+([+-]?\d*[.,]?\d+%)/i, (msg, match) => {
+// Handle @USDT_RUB command
+bot.onText(/^@USDT_RUB(?:\s+(\d+\.?\d*))?(?:\s*([+-]?\d*[.,]?\d+%))?|^@USDT_RUB\s+([+-]?\d*[.,]?\d+%)/i, (msg, match) => {
     const chatId = msg.chat.id;
     const authorizedUsername = checkAuthorization(msg);
-    if (!authorizedUsername) return; // Check authorization
+    if (!authorizedUsername) return;
 
-    // If third group matches, it's the "commission only" format
     if (match[3]) {
-        const amount = null; // No amount specified
+        const amount = null;
         const commissionString = match[3].trim();
-        console.log(`[/USDT_RUB command] User: ${msg.from.id} (${authorizedUsername}), Amount: ${amount}, Commission: ${commissionString}`);
+        console.log(`[@USDT_RUB command] User: ${msg.from.id} (${authorizedUsername}), Amount: ${amount}, Commission: ${commissionString}`);
         exchangeService.handleUsdtRubCommand(bot, chatId, amount, commissionString);
         return;
     }
 
-    // Regular format with optional amount and commission
     const amount = match[1] ? parseFloat(match[1]) : null;
     const commissionString = match[2] ? match[2].trim() : null;
-    console.log(`[/USDT_RUB command] User: ${msg.from.id} (${authorizedUsername}), Amount: ${amount}, Commission: ${commissionString}`);
+    console.log(`[@USDT_RUB command] User: ${msg.from.id} (${authorizedUsername}), Amount: ${amount}, Commission: ${commissionString}`);
     exchangeService.handleUsdtRubCommand(bot, chatId, amount, commissionString);
 });
 
-// Handle /RUB_USDT command
-// Updated regex similarly to /USDT_RUB to allow comma or period in commission
-bot.onText(/\/RUB_USDT(?:\s+(\d+\.?\d*))?(?:\s*([+-]?\d*[.,]?\d+%))?|\/RUB_USDT\s+([+-]?\d*[.,]?\d+%)/i, (msg, match) => {
+// Handle @RUB_USDT command
+bot.onText(/^@RUB_USDT(?:\s+(\d+\.?\d*))?(?:\s*([+-]?\d*[.,]?\d+%))?|^@RUB_USDT\s+([+-]?\d*[.,]?\d+%)/i, (msg, match) => {
     const chatId = msg.chat.id;
     const authorizedUsername = checkAuthorization(msg);
-    if (!authorizedUsername) return; // Check authorization
+    if (!authorizedUsername) return;
 
-    // If third group matches, it's the "commission only" format
     if (match[3]) {
-        const amount = null; // No amount specified
+        const amount = null;
         const commissionString = match[3].trim();
-        console.log(`[/RUB_USDT command] User: ${msg.from.id} (${authorizedUsername}), Amount: ${amount}, Commission: ${commissionString}`);
+        console.log(`[@RUB_USDT command] User: ${msg.from.id} (${authorizedUsername}), Amount: ${amount}, Commission: ${commissionString}`);
         exchangeService.handleRubUsdtCommand(bot, chatId, amount, commissionString);
         return;
     }
 
-    // Regular format with optional amount and commission
     const amount = match[1] ? parseFloat(match[1]) : null;
     const commissionString = match[2] ? match[2].trim() : null;
-    console.log(`[/RUB_USDT command] User: ${msg.from.id} (${authorizedUsername}), Amount: ${amount}, Commission: ${commissionString}`);
+    console.log(`[@RUB_USDT command] User: ${msg.from.id} (${authorizedUsername}), Amount: ${amount}, Commission: ${commissionString}`);
     exchangeService.handleRubUsdtCommand(bot, chatId, amount, commissionString);
 });
 
-// Handle /aml command
-bot.onText(/\/aml(?:\s+(.+))?/, (msg, match) => {
+// Handle @aml command
+bot.onText(/^@aml(?:\s+(.+))?/, (msg, match) => {
     const chatId = msg.chat.id;
     const authorizedUsername = checkAuthorization(msg);
-    if (!authorizedUsername) return; // Check authorization
+    if (!authorizedUsername) return;
 
-    // match[1] contains the address or could be undefined
     const walletAddress = match?.[1]?.trim();
-    console.log(`[/aml command] User: ${msg.from.id} (${authorizedUsername}), Address: ${walletAddress}`);
+    console.log(`[@aml command] User: ${msg.from.id} (${authorizedUsername}), Address: ${walletAddress}`);
     amlService.handleAmlCommand(bot, chatId, walletAddress);
 });
 
-// Handle /amls command
-bot.onText(/\/amls/, (msg) => {
+// Handle @amls command
+bot.onText(/^@amls/i, (msg) => {
     const chatId = msg.chat.id;
     const authorizedUsername = checkAuthorization(msg);
-    if (!authorizedUsername) return; // Check authorization
+    if (!authorizedUsername) return;
 
-    console.log(`[/amls command] User: ${msg.from.id} (${authorizedUsername})`);
+    console.log(`[@amls command] User: ${msg.from.id} (${authorizedUsername})`);
     amlService.handleAmlsCommand(bot, chatId);
 });
 
