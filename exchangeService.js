@@ -53,7 +53,7 @@ async function fetchDirectionDetails(directionId) {
     // Use -d for form data
     const dataString = requestData.toString();
     const curlCommand = `curl -X POST ${apiUrl} ${headersString} -k -d '${dataString}'`;
-    console.log(`[ExchangeService] Equivalent curl command: ${curlCommand}`);
+    // console.log(`[ExchangeService] Equivalent curl command: ${curlCommand}`);
 
     try {
         // Send data as URLSearchParams, axios will handle encoding
